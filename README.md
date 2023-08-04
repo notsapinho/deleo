@@ -52,7 +52,7 @@ deleo help <command>
 
 ## 📷 Preview
 
-![preview](https://i.imgur.com/9HiLVUh.png)
+![PREVIEW]()
 
 ## 🤝 Contributing
 

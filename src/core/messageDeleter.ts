@@ -22,7 +22,6 @@ export type MessageDeleterEventMappings = {
     [MessageDeleterEvents.Ready]: (channel: TextBasedChannel) => void;
     [MessageDeleterEvents.Delete]: (message: Message) => void;
     [MessageDeleterEvents.FailedDelete]: (message: Message, error: any) => void;
-    [MessageDeleterEvents.ApproximateTotal]: (total: number) => void;
     [MessageDeleterEvents.Done]: (channel: TextBasedChannel, deleted_messages: Message[]) => void;
 };
 
@@ -57,7 +56,6 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
 
             if (approximate_total.isOk()) {
                 this.approximate_total = approximate_total.unwrap();
-                this.emit(MessageDeleterEvents.ApproximateTotal, this.approximate_total);
             }
 
             this.deleted_messages = [];
