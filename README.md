@@ -50,6 +50,10 @@ For more information about a command, you can use the `help` command:
 deleo help <command>
 ```
 
+## 📷 Preview
+
+![preview](https://i.imgur.com/9HiLVUh.png)
+
 ## 🤝 Contributing
 
 We welcome contributions to Deleo! We welcome contributions to Deleo! Feel free to fork this repository and submit a pull request. If you have any questions or suggestions, you can create an issue.

@@ -148,7 +148,7 @@ program
                 type: "input",
                 message: chalk`{white Enter your token {rgb(237,112,20).bold >>}}`,
                 prefix: Logger.tag,
-                transformer: (input) => input
+                transformer: (input) => truncate(input, 10)
             });
 
             token = promptResult.token;

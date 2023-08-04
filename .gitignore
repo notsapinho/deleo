@@ -75,6 +75,5 @@ typings/
 # FuseBox cache
 .fusebox/
 
-yarn.lock
 dist/
 .cached_token
