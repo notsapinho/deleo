@@ -1,0 +1,43 @@
+{
+    "$schema": "https://json.schemastore.org/swcrc",
+    "module": {
+        "type": "commonjs"
+    },
+    "jsc": {
+        "externalHelpers": false,
+        "parser": {
+            "syntax": "typescript",
+            "tsx": true,
+            "decorators": true,
+            "dynamicImport": false
+        },
+        "target": "es2022",
+        "minify": {
+            "compress": {
+                "booleans_as_integers": true,
+                "dead_code": true,
+                "unused": true,
+                "ecma": "2022",
+                "reduce_vars": true,
+                "reduce_funcs": true,
+                "keep_classnames": true,
+                "keep_fargs": false,
+                "keep_fnames": true
+            },
+            "mangle": {
+                "keepClassNames": true,
+                "keepFnNames": true,
+                "keepPrivateProps": true
+            }
+        },
+        "transform": {
+            "react": {
+                "useBuiltins": true
+            }
+        },
+        "baseUrl": "src",
+        "paths": {
+            "@/*": ["*"]
+        }
+    }
+}

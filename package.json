@@ -1,0 +1,46 @@
+{
+    "name": "deleo",
+    "version": "1.0.0",
+    "description": "Deleo is a CLI tool developed in TypeScript for Discord users, enabling the deletion of messages in open DMs or specified channels.",
+    "author": "notsapinho",
+    "main": "dist/index.js",
+    "bin": {
+        "deleo": "./dist/index.js"
+    },
+    "scripts": {
+        "start": "npm build && npm start:prod",
+        "start:prod": "node ./dist/index.js",
+        "build": "swc src -d dist -D --delete-dir-on-start",
+        "format": "prettier --write \"src/**/*.ts\""
+    },
+    "keywords": [
+        "discord",
+        "discord.js",
+        "discord.js-selfbot",
+        "discord.js-selfbot-v13",
+        "discord.js-selfbot-v13-typescript",
+        "message-deleter",
+        "message-cleaner",
+        "cli",
+        "typescript"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@types/figlet": "^1.5.6",
+        "@types/inquirer": "^9.0.3",
+        "@types/node": "^18.15.11",
+        "prettier": "^2.8.7",
+        "typed-emitter": "^2.1.0",
+        "typescript": "^5.0.4"
+    },
+    "dependencies": {
+        "@sapphire/result": "^2.6.4",
+        "@swc/cli": "^0.1.62",
+        "@swc/core": "^1.3.51",
+        "chalk": "4.x",
+        "commander": "^11.0.0",
+        "discord.js-selfbot-v13": "notsapinho/discord.js-selfbot-v13.git",
+        "figlet": "^1.6.0",
+        "inquirer": "7.x"
+    }
+}
