@@ -25,6 +25,8 @@
         "typescript"
     ],
     "license": "MIT",
+    "repository": "https://github.com/notsapinho/deleo",
+    "homepage": "https://github.com/notsapinho/deleo#readme",
     "devDependencies": {
         "@types/figlet": "^1.5.6",
         "@types/inquirer": "^9.0.3",
