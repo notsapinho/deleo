@@ -1,6 +1,6 @@
 {
     "name": "deleo",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Deleo is a CLI tool developed in TypeScript for Discord users, enabling the deletion of messages in open DMs or specified channels.",
     "author": "notsapinho",
     "main": "dist/index.js",
