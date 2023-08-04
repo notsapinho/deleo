@@ -30,12 +30,4 @@ export class AuthManager {
             return Result.ok();
         });
     }
-
-    public async isTokenCached(): Promise<Result<boolean, any>> {
-        return Result.fromAsync(async () => {
-            const token = await this.getToken();
-
-            return Result.ok(token.isOk());
-        });
-    }
 }

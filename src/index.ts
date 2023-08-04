@@ -104,9 +104,9 @@ program
     .action(async (token) => {
         void banner();
 
-        const isTokenCached = await authManager.isTokenCached();
+        const cachedToken = await authManager.getToken();
 
-        if (isTokenCached.isOk()) {
+        if (cachedToken.isOk()) {
             const { confirm } = await inquirer.prompt({
                 name: "confirm",
                 type: "confirm",
@@ -134,13 +134,11 @@ program
 
         const opts = program.opts();
 
-        const isTokenCached = await authManager.isTokenCached();
-
         let token: string = "";
 
-        if (isTokenCached.isOk()) {
-            const cachedToken = await authManager.getToken();
+        const cachedToken = await authManager.getToken();
 
+        if (cachedToken.isOk()) {
             token = cachedToken.unwrap();
         } else if (opts.token) {
             token = opts.token;
