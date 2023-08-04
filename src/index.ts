@@ -148,7 +148,7 @@ program
                 type: "input",
                 message: chalk`{white Enter your token {rgb(237,112,20).bold >>}}`,
                 prefix: Logger.tag,
-                transformer: (input) => truncate(input, 10)
+                transformer: (input, _, flags) => (flags.isFinal ? truncate(input, 10) : input)
             });
 
             token = promptResult.token;
@@ -223,7 +223,7 @@ program
 
             deleter.on(MessageDeleterEvents.ApproximateTotal, (total) => {
                 if (total === 0) Logger.warn("Failed to get the approximate total of messages to delete.");
-                else Logger.log(chalk`{white Approximate total of messages to delete: {yellow.bold ${total}}}`);
+                else Logger.log(chalk`{white Deleting an approximate total of messages: {yellow.bold ${total}}}`);
             });
 
             deleter.on(MessageDeleterEvents.Done, (channel, deleted_messages) => {

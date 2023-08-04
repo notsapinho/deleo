@@ -1,9 +1,11 @@
-import { Result } from "@sapphire/result";
 import { readFile, rm, writeFile } from "fs/promises";
 import path from "path";
+import os from "os";
+
+import { Result } from "@sapphire/result";
 
 export class AuthManager {
-    public readonly cachePath: string = path.join(__dirname, "..", "..", "/.cached_token");
+    public readonly cachePath: string = path.join(os.homedir(), "/.deleo_cached_token");
 
     public constructor() {}
 

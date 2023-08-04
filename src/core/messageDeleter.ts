@@ -61,7 +61,7 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
             }
 
             this.deleted_messages = [];
-            const deleted_messages: Message[] = [];
+            const current_deleted_mesasges: Message[] = [];
 
             this.emit(MessageDeleterEvents.Ready, channel);
 
@@ -88,7 +88,7 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
 
                 const deleted = await this.deleteMessage(message);
 
-                deleted_messages.push(message);
+                current_deleted_mesasges.push(message);
                 this.deleted_messages.push(message);
 
                 if (deleted.isErr()) {
@@ -100,9 +100,9 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
                 await sleep(this.options.deleteDelay);
             }
 
-            this.emit(MessageDeleterEvents.Done, channel, deleted_messages);
+            this.emit(MessageDeleterEvents.Done, channel, current_deleted_mesasges);
 
-            return Result.ok(deleted_messages);
+            return Result.ok(current_deleted_mesasges);
         });
     }
 }
