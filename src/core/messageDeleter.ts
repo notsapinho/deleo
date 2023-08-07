@@ -4,7 +4,8 @@ import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 
 import { MessageSearcher } from "./";
-import { DEFAULT_SEARCH_LIMIT, retry, sleep } from "@/shared";
+import { DEFAULT_SEARCH_LIMIT } from "@/shared";
+import { retry, sleep } from "@/shared/utils";
 
 export interface MessageDeleterOptions {
     deleteDelay: number;

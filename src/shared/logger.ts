@@ -2,12 +2,12 @@ import chalk from "chalk";
 import { version, author } from "../../package.json";
 import figlet from "figlet";
 
+import { removeColors } from "./utils";
+
 export class Logger {
     public static tag = chalk`{rgb(237,112,20).bold [Deleo]}`;
 
     public static log = (text: string): void => console.log(chalk`${Logger.tag} ${text}`);
-
-    public static logNoTag = (text: string): void => console.log(chalk`${text}`);
 
     public static error = (text: string): void => console.log(chalk`${Logger.tag} {red ${text}}`);
 
@@ -54,10 +54,7 @@ export class Logger {
             .map(
                 (line, _, lines) =>
                     " ".repeat(
-                        space ??
-                            (process.stdout.columns -
-                                lines[Math.floor(lines.length / 2)].replace(/\x1b[^m]*m/g, "").length) /
-                                2
+                        space ?? (process.stdout.columns - removeColors(lines[Math.floor(lines.length / 2)]).length) / 2
                     ) + line
             )
             .join("\n");
