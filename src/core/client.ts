@@ -4,15 +4,17 @@ import { Result } from "@sapphire/result";
 import chalk from "chalk";
 import inquirer from "inquirer";
 
-import { Logger, PROGRESS_BAR_FORMAT, truncate } from "@/shared";
+import { Logger, PROGRESS_BAR_FORMAT } from "@/shared";
+import { truncate } from "@/shared/utils";
 import { MessageDeleter, AuthManager } from "./";
-import { ProgramOptions } from "..";
+import { ProgramOptions } from "../";
 
 export class DeleoClient extends Client {
     public readonly progress = new SingleBar(
         {
             format: PROGRESS_BAR_FORMAT,
-            stopOnComplete: false
+            stopOnComplete: false,
+            hideCursor: true
         },
         Presets.shades_classic
     );

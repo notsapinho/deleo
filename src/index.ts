@@ -8,7 +8,9 @@ import inquirer from "inquirer";
 import { Collection, DMChannel, TextBasedChannel } from "discord.js-selfbot-v13";
 
 import { MessageDeleterEvents, AuthManager, DeleoClient } from "@/core";
-import { Logger, pluralize, truncate } from "@/shared";
+import { Logger } from "@/shared";
+import { pluralize, truncate } from "@/shared/utils";
+import { checkbox } from "@/shared/prompts";
 
 export type ProgramOptions = {
     token: string;
@@ -70,21 +72,33 @@ program
                         ["DM", "GROUP_DM"].includes(channel.type)
                     ) as Collection<string, DMChannel | TextBasedChannel>;
 
-                    const { channels_to_delete } = await inquirer.prompt({
-                        name: "channels_to_delete",
-                        type: "checkbox",
+                    const channels_to_delete = await checkbox({
                         message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
                         prefix: Logger.tag,
                         default: channels.map((channel) => channel.id),
                         choices: channels.map((channel) => ({
                             name: channel.type === "DM" ? channel.recipient.username : channel.name,
                             value: channel.id
-                        }))
+                        })),
+                        transformer: (choices) =>
+                            chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
                     });
+
+                    if (channels_to_delete.length === 0) {
+                        Logger.error("You must select at least one channel.");
+                        process.exit();
+                    }
 
                     console.log();
 
-                    await client.deleteMessagesFromChannels(channels_to_delete);
+                    const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
+                        channels_to_delete
+                    );
+
+                    if (deleteMessagesFromChannelsResult.isErr()) {
+                        console.error(deleteMessagesFromChannelsResult.unwrapErr());
+                        process.exit();
+                    }
 
                     break;
                 case "deleteMessagesFromChannel":
@@ -96,7 +110,14 @@ program
                         transformer: (input) => input
                     });
 
-                    await client.deleteMessagesFromChannel(channel_id);
+                    console.log();
+
+                    const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channel_id);
+
+                    if (deleteMessagesFromChannelResult.isErr()) {
+                        console.error(deleteMessagesFromChannelResult.unwrapErr());
+                        process.exit();
+                    }
 
                     break;
             }
