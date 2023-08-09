@@ -9,7 +9,7 @@ import { Collection, DMChannel, TextBasedChannel } from "discord.js-selfbot-v13"
 
 import { MessageDeleterEvents, AuthManager, DeleoClient } from "@/core";
 import { Logger } from "@/shared";
-import { isUpdated, pluralize, truncate } from "@/shared/utils";
+import { getChannelName, isUpdated, pluralize, truncate } from "@/shared/utils";
 import { checkbox } from "@/shared/prompts";
 
 export type ProgramOptions = {
@@ -81,7 +81,7 @@ program
                         prefix: Logger.tag,
                         default: channels.map((channel) => channel.id),
                         choices: channels.map((channel) => ({
-                            name: channel.type === "DM" ? channel.recipient.username : channel.name,
+                            name: getChannelName(channel),
                             value: channel.id
                         })),
                         transformer: (choices) =>
@@ -100,7 +100,7 @@ program
                     );
 
                     if (deleteMessagesFromChannelsResult.isErr()) {
-                        console.error(deleteMessagesFromChannelsResult.unwrapErr());
+                        Logger.error(deleteMessagesFromChannelsResult.unwrapErr());
                         process.exit();
                     }
 
@@ -119,7 +119,7 @@ program
                     const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channel_id);
 
                     if (deleteMessagesFromChannelResult.isErr()) {
-                        console.error(deleteMessagesFromChannelResult.unwrapErr());
+                        Logger.error(deleteMessagesFromChannelResult.unwrapErr());
                         process.exit();
                     }
 
@@ -136,9 +136,9 @@ program
             Logger.log(
                 chalk`{white Deleting an approximate total of {yellow.bold ${
                     client.deleter.approximate_total
-                }} ${pluralize("message", client.deleter.approximate_total)} from {yellow.bold ${
-                    channel.type === "DM" ? channel.recipient.tag : channel.name
-                }}}`
+                }} ${pluralize("message", client.deleter.approximate_total)} from {yellow.bold ${getChannelName(
+                    channel
+                )}}}`
             );
 
             if (!opts.verbose) client.progress.start(client.deleter.approximate_total, 0);
