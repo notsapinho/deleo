@@ -7,7 +7,7 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 import { Collection, DMChannel, TextBasedChannel } from "discord.js-selfbot-v13";
 
-import { MessageDeleterEvents, AuthManager, DeleoClient } from "@/core";
+import { MessageDeleterEvents, AuthManager, DeleoClient, PackageOpenerEvents } from "@/core";
 import { Logger } from "@/shared";
 import { getChannelName, isUpdated, pluralize, truncate } from "@/shared/utils";
 import { checkbox } from "@/shared/prompts";
@@ -15,6 +15,7 @@ import { checkbox } from "@/shared/prompts";
 export type ProgramOptions = {
     token: string;
     deleteDelay: number;
+    openDelay: number;
     verbose: boolean;
     checkUpdates: boolean;
 };
@@ -26,7 +27,6 @@ program
     .description(description)
     .version(version, "-v, --version", "Output the current version")
     .option("-t, --token <token>", "Your discord token")
-    .option("-d, --delete-delay <delay>", "Delay between each message deletion in ms", "300")
     .option("--verbose", "Enable verbose logging (disables progress bar)")
     .option("--check-updates", "Check for updates", true)
     .addHelpCommand("help [command]", "Display help for command")
@@ -35,6 +35,7 @@ program
 program
     .command("delete")
     .description("Delete messages from open DMs or a specified channel.")
+    .option("-d, --delete-delay <delay>", "Delay between each message deletion in ms", "300")
     .action(async () => {
         Logger.banner();
 
@@ -100,7 +101,8 @@ program
                     );
 
                     if (deleteMessagesFromChannelsResult.isErr()) {
-                        Logger.error(deleteMessagesFromChannelsResult.unwrapErr());
+                        Logger.error("Something went wrong while deleting messages.");
+                        console.log(deleteMessagesFromChannelsResult.unwrapErr());
                         process.exit();
                     }
 
@@ -119,7 +121,8 @@ program
                     const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channel_id);
 
                     if (deleteMessagesFromChannelResult.isErr()) {
-                        Logger.error(deleteMessagesFromChannelResult.unwrapErr());
+                        Logger.error("Something went wrong while deleting messages.");
+                        console.log(deleteMessagesFromChannelResult.unwrapErr());
                         process.exit();
                     }
 
@@ -180,10 +183,112 @@ program
     });
 
 program
+    .command("open")
+    .description("Opens all DMs provided by the Discord Data Package.")
+    .option("--open-delay <delay>", "Delay between each DM open in ms", "300")
+    .action(async () => {
+        Logger.banner();
+
+        const opts = program.opts<ProgramOptions>();
+        if (opts.checkUpdates) await isUpdated(version);
+
+        const client = new DeleoClient(opts);
+
+        const token = await client.getToken();
+
+        if (token.isErr()) {
+            Logger.error(token.unwrapErr());
+            process.exit();
+        }
+
+        client.on("ready", async () => {
+            Logger.success(`Logged in as ${client.user?.tag}!`);
+
+            const { package_data_folder } = await inquirer.prompt({
+                name: "package_data_folder",
+                type: "input",
+                message: chalk`{white Enter the path to the Discord Data Package {rgb(237,112,20).bold messages} folder {rgb(237,112,20).bold >>}}`,
+                prefix: Logger.tag,
+                transformer: (input) => input
+            });
+
+            console.log();
+
+            const readResult = await client.packageOpener.readPackage(package_data_folder);
+
+            if (readResult.isErr()) {
+                Logger.error("Failed to read the Discord Data Package.");
+                process.exit();
+            }
+
+            const openResult = await client.packageOpener.openChannels(readResult.unwrap());
+
+            if (openResult.isErr()) {
+                Logger.error("Something went wrong while opening the channels.");
+                console.log(openResult.unwrapErr());
+                process.exit();
+            }
+
+            Logger.success("Done!");
+
+            client.destroy();
+            process.exit();
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.Ready, (channels) => {
+            Logger.log(
+                chalk`{white Opening a total of {yellow.bold ${channels.length}} ${pluralize(
+                    "channel",
+                    channels.length
+                )}}`
+            );
+
+            if (!opts.verbose) client.progress.start(channels.length, 0);
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.Load, (channel) => {
+            if (opts.verbose) Logger.log(chalk`{white Loaded {yellow.bold ${channel.id}}}`);
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.FailedToLoad, (dir) => {
+            if (opts.verbose) Logger.error(chalk`{white Failed to load {yellow.bold ${dir}}}`);
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.Open, (channel) => {
+            if (opts.verbose)
+                Logger.log(chalk`{white Opened {yellow.bold ${channel.id}} - ${getChannelName(channel)}}`);
+            else client.progress.increment();
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.FailedToOpen, (channel) => {
+            if (opts.verbose) Logger.error(chalk`{white Failed to open {yellow.bold ${channel.id}}}`);
+            else client.progress.increment();
+        });
+
+        client.packageOpener.on(PackageOpenerEvents.Done, (opened_channels) => {
+            if (!opts.verbose) {
+                client.progress.update(opened_channels.length);
+                client.progress.stop();
+            }
+
+            console.log();
+        });
+
+        try {
+            Logger.warn("Logging in...");
+
+            await client.login(token.unwrap());
+        } catch (error) {
+            Logger.error("Invalid token.");
+            process.exit();
+        }
+    });
+
+program
     .command("auth")
     .description("Save your discord token.")
     .argument("<token>", "Your discord token")
-    .action(async (token) => {
+    .action(async (token: string) => {
         Logger.banner();
 
         const opts = program.opts<ProgramOptions>();

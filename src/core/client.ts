@@ -1,12 +1,12 @@
 import { Presets, SingleBar } from "cli-progress";
-import { Client, TextBasedChannel } from "discord.js-selfbot-v13";
+import { Client, Message, TextBasedChannel } from "discord.js-selfbot-v13";
 import { Result } from "@sapphire/result";
 import chalk from "chalk";
 import inquirer from "inquirer";
 
 import { Logger, PROGRESS_BAR_FORMAT } from "@/shared";
 import { truncate } from "@/shared/utils";
-import { MessageDeleter, AuthManager } from "./";
+import { MessageDeleter, AuthManager, PackageOpener } from "./";
 import { ProgramOptions } from "../";
 
 export class DeleoClient extends Client {
@@ -21,13 +21,19 @@ export class DeleoClient extends Client {
 
     public readonly deleter: MessageDeleter;
 
+    public readonly packageOpener: PackageOpener;
+
     public constructor(public readonly opts: ProgramOptions) {
         super({
             checkUpdate: false
         });
 
         this.deleter = new MessageDeleter({
-            deleteDelay: opts.deleteDelay
+            deleteDelay: Number(opts.deleteDelay)
+        });
+
+        this.packageOpener = new PackageOpener(this, {
+            openDelay: Number(opts.openDelay)
         });
     }
 
@@ -58,12 +64,12 @@ export class DeleoClient extends Client {
             for (const channel_id of channels_to_delete) {
                 const result = await this.deleteMessagesFromChannel(channel_id);
 
-                if (result.isErr()) return Result.err(result.unwrapErr());
+                if (result.isErr()) continue;
             }
         });
     }
 
-    public async deleteMessagesFromChannel(channel_id: string): Promise<Result<any, any>> {
+    public async deleteMessagesFromChannel(channel_id: string): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
             const channel = (await this.channels.fetch(channel_id).catch(() => null)) as TextBasedChannel;
 
@@ -71,7 +77,7 @@ export class DeleoClient extends Client {
 
             const result = await this.deleter.deleteChannelMessages(channel);
 
-            if (result.isErr()) return Result.err(result.unwrapErr());
+            return result;
         });
     }
 }

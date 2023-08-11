@@ -1,6 +1,6 @@
 # 🗑️ Deleo
 
-Deleo, a Latin term for "I delete", is a simple yet powerful CLI tool developed using TypeScript. It's designed to help Discord users manage their content by facilitating the deletion of messages in open DMs or specified channels.
+Deleo, a Latin term for "I delete", is a simple yet powerful CLI tool developed using TypeScript. It's designed to help Discord users manage their content by facilitating the deletion of messages in open DMs or specified channels, and now includes a command to open all DMs provided by the Discord Data Package.
 
 > ⚠️ **Any tool that automates actions on user accounts, including this one, could result in account termination.** (see [self-bots][self-bots]).  
 > Use at your own risk!.
@@ -9,6 +9,7 @@ Deleo, a Latin term for "I delete", is a simple yet powerful CLI tool developed 
 
 -   📨 Delete messages from open DMs or a specified channel
 -   ⏱️ Configurable delay between each message deletion
+-   📩 Open all DMs provided by the Discord Data Package with configurable delay
 
 ## 💻 Installation
 
@@ -42,6 +43,12 @@ You can customize the delay between each message deletion (default is 300ms):
 
 ```bash
 deleo delete --delete-delay <delay_in_ms>
+```
+
+You can open all DMs provided by the Discord Data Package using the open command (default is 300ms):
+
+```bash
+deleo open --open-delay <delay_in_ms>
 ```
 
 For more information about a command, you can use the `help` command:

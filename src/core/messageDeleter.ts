@@ -3,9 +3,9 @@ import { Result } from "@sapphire/result";
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 
-import { MessageSearcher } from "./";
 import { DEFAULT_SEARCH_LIMIT } from "@/shared";
 import { retry, sleep } from "@/shared/utils";
+import { MessageSearcher } from "./";
 
 export interface MessageDeleterOptions {
     deleteDelay: number;
@@ -15,7 +15,6 @@ export enum MessageDeleterEvents {
     Ready = "ready",
     Delete = "delete",
     FailedDelete = "failed_delete",
-    ApproximateTotal = "approximate_total",
     Done = "done"
 }
 

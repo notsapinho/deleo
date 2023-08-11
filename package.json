@@ -1,6 +1,6 @@
 {
     "name": "deleo",
-    "version": "1.0.9",
+    "version": "1.1.0",
     "description": "Deleo, a TypeScript-based CLI tool, simplifies Discord content management by enabling efficient deletion of messages in open DMs or specific channels.",
     "author": "notsapinho",
     "main": "dist/index.js",
@@ -46,7 +46,7 @@
         "chalk": "4.x",
         "cli-progress": "^3.12.0",
         "commander": "^11.0.0",
-        "discord.js-selfbot-v13": "notsapinho/discord.js-selfbot-v13.git",
+        "discord.js-selfbot-v13": "https://github.com/notsapinho/discord.js-selfbot-v13",
         "figlet": "^1.6.0",
         "inquirer": "7.x"
     }
