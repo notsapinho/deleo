@@ -16,6 +16,7 @@ export type ProgramOptions = {
     token: string;
     deleteDelay: number;
     openDelay: number;
+    closeDms: boolean;
     verbose: boolean;
     checkUpdates: boolean;
 };
@@ -36,6 +37,7 @@ program
     .command("delete")
     .description("Delete messages from open DMs or a specified channel.")
     .option("-d, --delete-delay <delay>", "Delay between each message deletion in ms", "300")
+    .option("--close-dms", "Close DMs after deleting messages", false)
     .action(async () => {
         Logger.banner();
 
@@ -163,10 +165,16 @@ program
             else client.progress.increment();
         });
 
-        client.deleter.on(MessageDeleterEvents.Done, () => {
+        client.deleter.on(MessageDeleterEvents.Done, async (channel: TextBasedChannel) => {
             if (!opts.verbose) {
                 client.progress.update(client.deleter.approximate_total);
                 client.progress.stop();
+            }
+
+            if (opts.closeDms && channel.type === "DM") {
+                if (!opts.verbose) Logger.log(chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`);
+
+                if (opts.closeDms) await client.users.deleteDM(channel.recipient.id).catch(() => null);
             }
 
             console.log();
