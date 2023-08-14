@@ -172,7 +172,7 @@ program
             }
 
             if (opts.closeDms && channel.type === "DM") {
-                if (!opts.verbose) Logger.log(chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`);
+                if (opts.verbose) Logger.log(chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`);
 
                 if (opts.closeDms) await client.users.deleteDM(channel.recipient.id).catch(() => null);
             }
