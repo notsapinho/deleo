@@ -37,11 +37,11 @@ program
     .command("delete")
     .description("Delete messages from open DMs or a specified channel.")
     .option("-d, --delete-delay <delay>", "Delay between each message deletion in ms", "300")
-    .option("--close-dms", "Close DMs after deleting messages", false)
-    .action(async () => {
+    .option("--close-dms", "Close DMs after deleting messages")
+    .action(async (options: ProgramOptions) => {
         Logger.banner();
 
-        const opts = program.opts<ProgramOptions>();
+        const opts = { ...program.opts<ProgramOptions>(), ...options };
         if (opts.checkUpdates) await isUpdated(version);
 
         const client = new DeleoClient(opts);
@@ -194,10 +194,10 @@ program
     .command("open")
     .description("Opens all DMs provided by the Discord Data Package.")
     .option("--open-delay <delay>", "Delay between each DM open in ms", "300")
-    .action(async () => {
+    .action(async (options: ProgramOptions) => {
         Logger.banner();
 
-        const opts = program.opts<ProgramOptions>();
+        const opts = { ...program.opts<ProgramOptions>(), ...options };
         if (opts.checkUpdates) await isUpdated(version);
 
         const client = new DeleoClient(opts);
