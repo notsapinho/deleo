@@ -58,7 +58,7 @@ export class MessageSearcher {
         return Result.fromAsync(async () => {
             const fetch = await this.fetch(channel, limit);
 
-            if (fetch.isErr()) return;
+            if (fetch.isErr()) return Result.err("No messages found");
 
             const messages = fetch.unwrap();
 
@@ -100,7 +100,7 @@ export class MessageSearcher {
                 // Yeah discord is weird
                 if (search.messages.size === 0) {
                     this.lastLimit += limit;
-                    return await this.fetch(channel, limit);
+                    return this.fetch(channel, limit);
                 }
 
                 this.lastLimit += limit;
