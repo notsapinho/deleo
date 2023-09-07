@@ -2,7 +2,7 @@ import { readFile, readdir } from "fs/promises";
 import { join } from "path";
 import EventEmitter from "events";
 
-import { DMChannel } from "discord.js-selfbot-v13";
+import { BaseFetchOptions, DMChannel, Snowflake } from "discord.js-selfbot-v13";
 import { Result } from "@sapphire/result";
 import TypedEmitter from "typed-emitter";
 
@@ -88,7 +88,7 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
                 const opened = await Result.fromAsync(async () => {
                     if (!channel.recipients) return Result.err();
 
-                    const opened_channel = await this.client.users.openRecipient(channel.recipients);
+                    const opened_channel = await this.openRecipient(channel.recipients);
 
                     return Result.ok(opened_channel as DMChannel);
                 });
@@ -109,5 +109,23 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
 
             return Result.ok(opened_channels);
         });
+    }
+
+    private async openRecipient(recipients: Snowflake[], { cache = true }: BaseFetchOptions = {}) {
+        // @ts-ignore
+        const data = await this.client.api.users("@me").channels.post({
+            data: {
+                recipients
+            },
+            headers: {
+                "X-Context-Properties": "e30=" // {}
+            }
+        });
+
+        // @ts-ignore
+        const dm_channel = this.client.channels._add(data, null, { cache });
+        // @ts-ignore
+        await dm_channel.sync();
+        return dm_channel;
     }
 }
