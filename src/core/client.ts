@@ -71,13 +71,13 @@ export class DeleoClient extends Client {
 
     public async deleteMessagesFromChannel(channel_id: string): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
-            const channel = (await this.channels.fetch(channel_id).catch(() => null)) as TextBasedChannel;
+            const channelResult = await Result.fromAsync(async () => await this.channels.fetch(channel_id));
 
-            if (!channel) return Result.err("Invalid channel ID provided.");
+            if (channelResult.isErr()) return Result.err("Invalid channel ID provided.");
 
-            const result = await this.deleter.deleteChannelMessages(channel);
+            const channel = channelResult.unwrap() as TextBasedChannel;
 
-            return result;
+            return await this.deleter.deleteChannelMessages(channel);
         });
     }
 }

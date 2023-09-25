@@ -11,6 +11,7 @@ import { MessageDeleterEvents, AuthManager, DeleoClient, PackageOpenerEvents } f
 import { Logger } from "@/shared";
 import { getChannelName, isUpdated, pluralize, truncate } from "@/shared/utils";
 import { checkbox } from "@/shared/prompts";
+import { Result } from "@sapphire/result";
 
 export type ProgramOptions = {
     token: string;
@@ -67,6 +68,10 @@ program
                         value: "deleteMessagesFromOpenedDMs"
                     },
                     {
+                        name: "Delete all messages from a guild",
+                        value: "deleteMessagesFromGuild"
+                    },
+                    {
                         name: "Delete all messages from a specified channel",
                         value: "deleteMessagesFromChannel"
                     }
@@ -75,59 +80,122 @@ program
 
             switch (option) {
                 case "deleteMessagesFromOpenedDMs":
-                    const channels = client.channels.cache.filter((channel) =>
-                        ["DM", "GROUP_DM"].includes(channel.type)
-                    ) as Collection<string, DMChannel | TextBasedChannel>;
+                    {
+                        const channels = client.channels.cache.filter((channel) =>
+                            ["DM", "GROUP_DM"].includes(channel.type)
+                        ) as Collection<string, DMChannel | TextBasedChannel>;
 
-                    const channels_to_delete = await checkbox({
-                        message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
-                        prefix: Logger.tag,
-                        default: channels.map((channel) => channel.id),
-                        choices: channels.map((channel) => ({
-                            name: getChannelName(channel),
-                            value: channel.id
-                        })),
-                        transformer: (choices) =>
-                            chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
-                    });
+                        const channels_to_delete = await checkbox({
+                            message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
+                            prefix: Logger.tag,
+                            default: channels.map((channel) => channel.id),
+                            choices: channels.map((channel) => ({
+                                name: getChannelName(channel),
+                                value: channel.id
+                            })),
+                            transformer: (choices) =>
+                                chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
+                        });
 
-                    if (channels_to_delete.length === 0) {
-                        Logger.error("You must select at least one channel.");
-                        process.exit();
+                        if (channels_to_delete.length === 0) {
+                            Logger.error("You must select at least one channel.");
+                            process.exit();
+                        }
+
+                        console.log();
+
+                        const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
+                            channels_to_delete
+                        );
+
+                        if (deleteMessagesFromChannelsResult.isErr()) {
+                            Logger.error("Something went wrong while deleting messages.");
+                            console.log(deleteMessagesFromChannelsResult.unwrapErr());
+                            process.exit();
+                        }
                     }
-
-                    console.log();
-
-                    const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
-                        channels_to_delete
-                    );
-
-                    if (deleteMessagesFromChannelsResult.isErr()) {
-                        Logger.error("Something went wrong while deleting messages.");
-                        console.log(deleteMessagesFromChannelsResult.unwrapErr());
-                        process.exit();
-                    }
-
                     break;
                 case "deleteMessagesFromChannel":
-                    const { channel_id } = await inquirer.prompt({
-                        name: "channel_id",
-                        type: "input",
-                        message: chalk`{white Enter the channel id {rgb(237,112,20).bold >>}}`,
-                        prefix: Logger.tag,
-                        transformer: (input) => input
-                    });
+                    {
+                        const { channelId } = await inquirer.prompt({
+                            name: "channelId",
+                            type: "input",
+                            message: chalk`{white Enter the channel id {rgb(237,112,20).bold >>}}`,
+                            prefix: Logger.tag,
+                            transformer: (input) => input
+                        });
 
-                    console.log();
+                        console.log();
 
-                    const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channel_id);
+                        const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channelId);
 
-                    if (deleteMessagesFromChannelResult.isErr()) {
-                        Logger.error("Something went wrong while deleting messages.");
-                        console.log(deleteMessagesFromChannelResult.unwrapErr());
-                        process.exit();
+                        if (deleteMessagesFromChannelResult.isErr()) {
+                            Logger.error("Something went wrong while deleting messages.");
+                            console.log(deleteMessagesFromChannelResult.unwrapErr());
+                            process.exit();
+                        }
                     }
+                    break;
+                case "deleteMessagesFromGuild":
+                    {
+                        const { guildId } = await inquirer.prompt({
+                            name: "guildId",
+                            type: "input",
+                            message: chalk`{white Enter the guild id {rgb(237,112,20).bold >>}}`,
+                            prefix: Logger.tag,
+                            transformer: (input) => input
+                        });
 
+                        console.log();
+
+                        const guildResult = await Result.fromAsync(() => client.guilds.fetch(guildId));
+
+                        if (guildResult.isErr()) {
+                            Logger.error("Invalid guild ID provided.");
+                            process.exit();
+                        }
+
+                        const guild = guildResult.unwrap();
+
+                        const channelsResult = await Result.fromAsync(() => guild.channels.fetch());
+
+                        if (channelsResult.isErr()) {
+                            Logger.error("Something went wrong while fetching guild channels.");
+                            process.exit();
+                        }
+
+                        const channels = channelsResult.unwrap();
+
+                        const visibleChannels = channels.filter((channel) => channel.viewable && channel.isText());
+
+                        const channelsToDeleteFrom = await checkbox({
+                            message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
+                            prefix: Logger.tag,
+                            default: visibleChannels.map((channel) => channel.id),
+                            choices: visibleChannels.map((channel) => ({
+                                name: channel.name,
+                                value: channel.id
+                            })),
+                            transformer: (choices) =>
+                                chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
+                        });
+
+                        if (channelsToDeleteFrom.length === 0) {
+                            Logger.error("You must select at least one channel.");
+                            process.exit();
+                        }
+
+                        console.log();
+
+                        const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
+                            channelsToDeleteFrom
+                        );
+
+                        if (deleteMessagesFromChannelsResult.isErr()) {
+                            Logger.error("Something went wrong while deleting messages.");
+                            process.exit();
+                        }
+                    }
                     break;
             }
 
