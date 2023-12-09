@@ -1,9 +1,12 @@
 import { Result } from "@sapphire/result";
 import axios from "axios";
 import chalk from "chalk";
+
 import { Logger } from "../logger";
 
-export const isUpdated = async (currentVersion: string): Promise<Result<void, any>> => {
+export const isUpdated = async (
+    currentVersion: string
+): Promise<Result<void, any>> => {
     return Result.fromAsync(async () => {
         const { data } = await axios.get("https://registry.npmjs.com/deleo");
 
@@ -16,7 +19,11 @@ export const isUpdated = async (currentVersion: string): Promise<Result<void, an
             )
         );
 
-        console.log(Logger.centerText(chalk`{white Run {yellow.bold npm i -g deleo} to update!}`));
+        console.log(
+            Logger.centerText(
+                chalk`{white Run {yellow.bold npm i -g deleo} to update!}`
+            )
+        );
 
         console.log();
     });

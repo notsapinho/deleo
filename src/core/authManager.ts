@@ -1,11 +1,13 @@
 import { readFile, rm, writeFile } from "fs/promises";
-import path from "path";
 import os from "os";
-
+import path from "path";
 import { Result } from "@sapphire/result";
 
 export class AuthManager {
-    public static readonly cachePath: string = path.join(os.homedir(), "/.deleo_cached_token");
+    public static readonly cachePath: string = path.join(
+        os.homedir(),
+        "/.deleo_cached_token"
+    );
 
     public static async setToken(token: string): Promise<Result<string, any>> {
         return Result.fromAsync(async () => {

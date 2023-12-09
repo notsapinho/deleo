@@ -1,13 +1,13 @@
-import { Presets, SingleBar } from "cli-progress";
-import { Client, Message, TextBasedChannel } from "discord.js-selfbot-v13";
 import { Result } from "@sapphire/result";
 import chalk from "chalk";
+import { Presets, SingleBar } from "cli-progress";
+import { Client, Message, TextBasedChannel } from "discord.js-selfbot-v13";
 import inquirer from "inquirer";
 
 import { Logger, PROGRESS_BAR_FORMAT } from "@/shared";
 import { truncate } from "@/shared/utils";
-import { MessageDeleter, AuthManager, PackageOpener } from "./";
 import { ProgramOptions } from "../";
+import { AuthManager, MessageDeleter, PackageOpener } from "./";
 
 export class DeleoClient extends Client {
     public readonly progress = new SingleBar(
@@ -51,7 +51,8 @@ export class DeleoClient extends Client {
                     type: "input",
                     message: chalk`{white Enter your token {rgb(237,112,20).bold >>}}`,
                     prefix: Logger.tag,
-                    transformer: (input, _, flags) => (flags.isFinal ? truncate(input, 10) : input)
+                    transformer: (input, _, flags) =>
+                        flags.isFinal ? truncate(input, 10) : input
                 });
 
                 return Result.ok(token);
@@ -59,7 +60,9 @@ export class DeleoClient extends Client {
         });
     }
 
-    public async deleteMessagesFromChannels(channels_to_delete: string[]): Promise<Result<any, any>> {
+    public async deleteMessagesFromChannels(
+        channels_to_delete: string[]
+    ): Promise<Result<any, any>> {
         return Result.fromAsync(async () => {
             for (const channel_id of channels_to_delete) {
                 const result = await this.deleteMessagesFromChannel(channel_id);
@@ -69,11 +72,16 @@ export class DeleoClient extends Client {
         });
     }
 
-    public async deleteMessagesFromChannel(channel_id: string): Promise<Result<Message[], any>> {
+    public async deleteMessagesFromChannel(
+        channel_id: string
+    ): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
-            const channelResult = await Result.fromAsync(async () => await this.channels.fetch(channel_id));
+            const channelResult = await Result.fromAsync(
+                async () => await this.channels.fetch(channel_id)
+            );
 
-            if (channelResult.isErr()) return Result.err("Invalid channel ID provided.");
+            if (channelResult.isErr())
+                return Result.err("Invalid channel ID provided.");
 
             const channel = channelResult.unwrap() as TextBasedChannel;
 

@@ -75,4 +75,14 @@ typings/
 # FuseBox cache
 .fusebox/
 
+# Build
 dist/
+
+# Yarn
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

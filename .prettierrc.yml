@@ -1,4 +1,3 @@
-# Normal Options
 arrowParens: "always"
 bracketSpacing: true
 embeddedLanguageFormatting: "auto"
@@ -6,13 +5,20 @@ endOfLine: "lf"
 htmlWhitespaceSensitivity: "strict"
 bracketSameLine: false
 jsxSingleQuote: false
-printWidth: 120
+printWidth: 80
 quoteProps: "as-needed"
 semi: true
 singleQuote: false
 tabWidth: 4
 trailingComma: "none"
 useTabs: false
+
+importOrder: ["<THIRD_PARTY_MODULES>", "", "^@/", "^[.][.]/", "^[.]/"]
+importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"]
+importOrderTypeScriptVersion: "4.4.0"
+
+plugins:
+    - "@ianvs/prettier-plugin-sort-imports"
 
 overrides:
     - files:

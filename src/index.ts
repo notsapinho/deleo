@@ -1,17 +1,25 @@
 #! /usr/bin/env node
-
-import { version, description } from "../package.json";
-
-import { Command } from "commander";
-import chalk from "chalk";
-import inquirer from "inquirer";
-import { Collection, DMChannel, TextBasedChannel } from "discord.js-selfbot-v13";
-
-import { MessageDeleterEvents, AuthManager, DeleoClient, PackageOpenerEvents } from "@/core";
-import { Logger } from "@/shared";
-import { getChannelName, isUpdated, pluralize, truncate } from "@/shared/utils";
-import { checkbox } from "@/shared/prompts";
 import { Result } from "@sapphire/result";
+import chalk from "chalk";
+import { Command } from "commander";
+import {
+    Collection,
+    DMChannel,
+    NonThreadGuildBasedChannel,
+    TextBasedChannel
+} from "discord.js-selfbot-v13";
+import inquirer from "inquirer";
+
+import {
+    AuthManager,
+    DeleoClient,
+    MessageDeleterEvents,
+    PackageOpenerEvents
+} from "@/core";
+import { Logger } from "@/shared";
+import { checkbox } from "@/shared/prompts";
+import { getChannelName, isUpdated, pluralize, truncate } from "@/shared/utils";
+import { description, version } from "../package.json";
 
 export type ProgramOptions = {
     token: string;
@@ -37,7 +45,11 @@ program
 program
     .command("delete")
     .description("Delete messages from open DMs or a specified channel.")
-    .option("-d, --delete-delay <delay>", "Delay between each message deletion in ms", "300")
+    .option(
+        "-d, --delete-delay <delay>",
+        "Delay between each message deletion in ms",
+        "300"
+    )
     .option("--close-dms", "Close DMs after deleting messages")
     .action(async (options: ProgramOptions) => {
         Logger.banner();
@@ -81,8 +93,9 @@ program
             switch (option) {
                 case "deleteMessagesFromOpenedDMs":
                     {
-                        const channels = client.channels.cache.filter((channel) =>
-                            ["DM", "GROUP_DM"].includes(channel.type)
+                        const channels = client.channels.cache.filter(
+                            (channel) =>
+                                ["DM", "GROUP_DM"].includes(channel.type)
                         ) as Collection<string, DMChannel | TextBasedChannel>;
 
                         const channels_to_delete = await checkbox({
@@ -94,23 +107,32 @@ program
                                 value: channel.id
                             })),
                             transformer: (choices) =>
-                                chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
+                                chalk`{cyan Selected {bold ${
+                                    choices.length
+                                }} ${pluralize("channel", choices.length)}}`
                         });
 
                         if (channels_to_delete.length === 0) {
-                            Logger.error("You must select at least one channel.");
+                            Logger.error(
+                                "You must select at least one channel."
+                            );
                             process.exit();
                         }
 
                         console.log();
 
-                        const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
-                            channels_to_delete
-                        );
+                        const deleteMessagesFromChannelsResult =
+                            await client.deleteMessagesFromChannels(
+                                channels_to_delete
+                            );
 
                         if (deleteMessagesFromChannelsResult.isErr()) {
-                            Logger.error("Something went wrong while deleting messages.");
-                            console.log(deleteMessagesFromChannelsResult.unwrapErr());
+                            Logger.error(
+                                "Something went wrong while deleting messages."
+                            );
+                            console.log(
+                                deleteMessagesFromChannelsResult.unwrapErr()
+                            );
                             process.exit();
                         }
                     }
@@ -127,11 +149,16 @@ program
 
                         console.log();
 
-                        const deleteMessagesFromChannelResult = await client.deleteMessagesFromChannel(channelId);
+                        const deleteMessagesFromChannelResult =
+                            await client.deleteMessagesFromChannel(channelId);
 
                         if (deleteMessagesFromChannelResult.isErr()) {
-                            Logger.error("Something went wrong while deleting messages.");
-                            console.log(deleteMessagesFromChannelResult.unwrapErr());
+                            Logger.error(
+                                "Something went wrong while deleting messages."
+                            );
+                            console.log(
+                                deleteMessagesFromChannelResult.unwrapErr()
+                            );
                             process.exit();
                         }
                     }
@@ -148,7 +175,9 @@ program
 
                         console.log();
 
-                        const guildResult = await Result.fromAsync(() => client.guilds.fetch(guildId));
+                        const guildResult = await Result.fromAsync(() =>
+                            client.guilds.fetch(guildId)
+                        );
 
                         if (guildResult.isErr()) {
                             Logger.error("Invalid guild ID provided.");
@@ -157,42 +186,57 @@ program
 
                         const guild = guildResult.unwrap();
 
-                        const channelsResult = await Result.fromAsync(() => guild.channels.fetch());
+                        const channelsResult = await Result.fromAsync(() =>
+                            guild.channels.fetch()
+                        );
 
                         if (channelsResult.isErr()) {
-                            Logger.error("Something went wrong while fetching guild channels.");
+                            Logger.error(
+                                "Something went wrong while fetching guild channels."
+                            );
                             process.exit();
                         }
 
                         const channels = channelsResult.unwrap();
 
-                        const visibleChannels = channels.filter((channel) => channel.viewable && channel.isText());
+                        const visibleChannels = channels.filter(
+                            (channel) => channel?.viewable && channel?.isText()
+                        ) as Collection<string, NonThreadGuildBasedChannel>;
 
                         const channelsToDeleteFrom = await checkbox({
                             message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
                             prefix: Logger.tag,
-                            default: visibleChannels.map((channel) => channel.id),
+                            default: visibleChannels.map(
+                                (channel) => channel.id
+                            ),
                             choices: visibleChannels.map((channel) => ({
                                 name: channel.name,
                                 value: channel.id
                             })),
                             transformer: (choices) =>
-                                chalk`{cyan Selected {bold ${choices.length}} ${pluralize("channel", choices.length)}}`
+                                chalk`{cyan Selected {bold ${
+                                    choices.length
+                                }} ${pluralize("channel", choices.length)}}`
                         });
 
                         if (channelsToDeleteFrom.length === 0) {
-                            Logger.error("You must select at least one channel.");
+                            Logger.error(
+                                "You must select at least one channel."
+                            );
                             process.exit();
                         }
 
                         console.log();
 
-                        const deleteMessagesFromChannelsResult = await client.deleteMessagesFromChannels(
-                            channelsToDeleteFrom
-                        );
+                        const deleteMessagesFromChannelsResult =
+                            await client.deleteMessagesFromChannels(
+                                channelsToDeleteFrom
+                            );
 
                         if (deleteMessagesFromChannelsResult.isErr()) {
-                            Logger.error("Something went wrong while deleting messages.");
+                            Logger.error(
+                                "Something went wrong while deleting messages."
+                            );
                             process.exit();
                         }
                     }
@@ -209,44 +253,55 @@ program
             Logger.log(
                 chalk`{white Deleting an approximate total of {yellow.bold ${
                     client.deleter.approximate_total
-                }} ${pluralize("message", client.deleter.approximate_total)} from {yellow.bold ${getChannelName(
-                    channel
-                )}}}`
+                }} ${pluralize(
+                    "message",
+                    client.deleter.approximate_total
+                )} from {yellow.bold ${getChannelName(channel)}}}`
             );
 
-            if (!opts.verbose) client.progress.start(client.deleter.approximate_total, 0);
+            if (!opts.verbose)
+                client.progress.start(client.deleter.approximate_total, 0);
         });
 
         client.deleter.on(MessageDeleterEvents.Delete, (message) => {
             if (opts.verbose)
                 Logger.log(
-                    chalk`{white Deleted {yellow.bold ${message.id}} - ${message.author.tag}: ${truncate(
-                        message.content,
-                        20
-                    )}}`
+                    chalk`{white Deleted {yellow.bold ${message.id}} - ${
+                        message.author.tag
+                    }: ${truncate(message.content, 20)}}`
                 );
             else client.progress.increment();
         });
 
         client.deleter.on(MessageDeleterEvents.FailedDelete, (message) => {
-            if (opts.verbose) Logger.error(`Failed to delete message ${message.id}.`);
+            if (opts.verbose)
+                Logger.error(`Failed to delete message ${message.id}.`);
             else client.progress.increment();
         });
 
-        client.deleter.on(MessageDeleterEvents.Done, async (channel: TextBasedChannel) => {
-            if (!opts.verbose) {
-                client.progress.update(client.deleter.approximate_total);
-                client.progress.stop();
+        client.deleter.on(
+            MessageDeleterEvents.Done,
+            async (channel: TextBasedChannel) => {
+                if (!opts.verbose) {
+                    client.progress.update(client.deleter.approximate_total);
+                    client.progress.stop();
+                }
+
+                if (opts.closeDms && channel.type === "DM") {
+                    if (opts.verbose)
+                        Logger.log(
+                            chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`
+                        );
+
+                    if (opts.closeDms)
+                        await client.users
+                            .deleteDM(channel.recipient.id)
+                            .catch(() => null);
+                }
+
+                console.log();
             }
-
-            if (opts.closeDms && channel.type === "DM") {
-                if (opts.verbose) Logger.log(chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`);
-
-                if (opts.closeDms) await client.users.deleteDM(channel.recipient.id).catch(() => null);
-            }
-
-            console.log();
-        });
+        );
 
         try {
             Logger.warn("Logging in...");
@@ -290,17 +345,22 @@ program
 
             console.log();
 
-            const readResult = await client.packageOpener.readPackage(package_data_folder);
+            const readResult =
+                await client.packageOpener.readPackage(package_data_folder);
 
             if (readResult.isErr()) {
                 Logger.error("Failed to read the Discord Data Package.");
                 process.exit();
             }
 
-            const openResult = await client.packageOpener.openChannels(readResult.unwrap());
+            const openResult = await client.packageOpener.openChannels(
+                readResult.unwrap()
+            );
 
             if (openResult.isErr()) {
-                Logger.error("Something went wrong while opening the channels.");
+                Logger.error(
+                    "Something went wrong while opening the channels."
+                );
                 console.log(openResult.unwrapErr());
                 process.exit();
             }
@@ -313,31 +373,41 @@ program
 
         client.packageOpener.on(PackageOpenerEvents.Ready, (channels) => {
             Logger.log(
-                chalk`{white Opening a total of {yellow.bold ${channels.length}} ${pluralize(
-                    "channel",
+                chalk`{white Opening a total of {yellow.bold ${
                     channels.length
-                )}}`
+                }} ${pluralize("channel", channels.length)}}`
             );
 
             if (!opts.verbose) client.progress.start(channels.length, 0);
         });
 
         client.packageOpener.on(PackageOpenerEvents.Load, (channel) => {
-            if (opts.verbose) Logger.log(chalk`{white Loaded {yellow.bold ${channel.id}}}`);
+            if (opts.verbose)
+                Logger.log(chalk`{white Loaded {yellow.bold ${channel.id}}}`);
         });
 
         client.packageOpener.on(PackageOpenerEvents.FailedToLoad, (dir) => {
-            if (opts.verbose) Logger.error(chalk`{white Failed to load {yellow.bold ${dir}}}`);
+            if (opts.verbose)
+                Logger.error(
+                    chalk`{white Failed to load {yellow.bold ${dir}}}`
+                );
         });
 
         client.packageOpener.on(PackageOpenerEvents.Open, (channel) => {
             if (opts.verbose)
-                Logger.log(chalk`{white Opened {yellow.bold ${channel.id}} - ${getChannelName(channel)}}`);
+                Logger.log(
+                    chalk`{white Opened {yellow.bold ${
+                        channel.id
+                    }} - ${getChannelName(channel)}}`
+                );
             else client.progress.increment();
         });
 
         client.packageOpener.on(PackageOpenerEvents.FailedToOpen, (channel) => {
-            if (opts.verbose) Logger.error(chalk`{white Failed to open {yellow.bold ${channel.id}}}`);
+            if (opts.verbose)
+                Logger.error(
+                    chalk`{white Failed to open {yellow.bold ${channel.id}}}`
+                );
             else client.progress.increment();
         });
 

@@ -1,20 +1,22 @@
 import {
     createPrompt,
-    useState,
-    useKeypress,
-    usePrefix,
-    usePagination,
-    isUpKey,
     isDownKey,
-    isSpaceKey,
-    isNumberKey,
     isEnterKey,
-    Separator
+    isNumberKey,
+    isSpaceKey,
+    isUpKey,
+    Separator,
+    useKeypress,
+    usePagination,
+    usePrefix,
+    useState
 } from "@inquirer/core";
+
 import type {} from "@inquirer/type";
+
+import ansiEscapes from "ansi-escapes";
 import chalk from "chalk";
 import figures from "figures";
-import ansiEscapes from "ansi-escapes";
 
 export type Choice<Value> = {
     name?: string;
@@ -34,30 +36,38 @@ type Config<Value> = {
     transformer?: (choices: ReadonlyArray<Choice<Value>>) => string;
 };
 
-function isSelectableChoice<T>(choice: undefined | Separator | Choice<T>): choice is Choice<T> {
+function isSelectableChoice<T>(
+    choice: undefined | Separator | Choice<T>
+): choice is Choice<T> {
     return choice != null && !Separator.isSeparator(choice) && !choice.disabled;
 }
 
 export default createPrompt(
-    <Value extends unknown>(config: Config<Value>, done: (value: Array<Value>) => void): string => {
+    <Value extends unknown>(
+        config: Config<Value>,
+        done: (value: Array<Value>) => void
+    ): string => {
         const { prefix = usePrefix(), instructions, transformer } = config;
 
         const [status, setStatus] = useState("pending");
-        const [choices, setChoices] = useState<Array<Separator | Choice<Value>>>(() =>
-            config.choices.map((choice) => ({ ...choice }))
-        );
+        const [choices, setChoices] = useState<
+            Array<Separator | Choice<Value>>
+        >(() => config.choices.map((choice) => ({ ...choice })));
         const [cursorPosition, setCursorPosition] = useState(0);
         const [showHelpTip, setShowHelpTip] = useState(true);
 
         if (config.default) {
             choices.forEach((choice) => {
-                if (isSelectableChoice(choice) && config.default.indexOf(choice.value) >= 0) {
+                if (
+                    isSelectableChoice(choice) &&
+                    config.default.indexOf(choice.value) >= 0
+                ) {
                     choice.checked = true;
                 }
             });
         }
 
-        config.default = null;
+        config.default = undefined;
 
         useKeypress((key) => {
             let newCursorPosition = cursorPosition;
@@ -65,7 +75,10 @@ export default createPrompt(
                 setStatus("done");
                 done(
                     choices
-                        .filter((choice) => isSelectableChoice(choice) && choice.checked)
+                        .filter(
+                            (choice) =>
+                                isSelectableChoice(choice) && choice.checked
+                        )
                         .map((choice) => (choice as Choice<Value>).value)
                 );
             } else if (isUpKey(key) || isDownKey(key)) {
@@ -73,7 +86,9 @@ export default createPrompt(
                 let selectedOption: Separator | Choice<any>;
 
                 while (!isSelectableChoice(selectedOption)) {
-                    newCursorPosition = (newCursorPosition + offset + choices.length) % choices.length;
+                    newCursorPosition =
+                        (newCursorPosition + offset + choices.length) %
+                        choices.length;
                     selectedOption = choices[newCursorPosition];
                 }
 
@@ -82,7 +97,10 @@ export default createPrompt(
                 setShowHelpTip(false);
                 setChoices(
                     choices.map((choice, i) => {
-                        if (i === cursorPosition && isSelectableChoice(choice)) {
+                        if (
+                            i === cursorPosition &&
+                            isSelectableChoice(choice)
+                        ) {
                             return { ...choice, checked: !choice.checked };
                         }
 
@@ -90,14 +108,25 @@ export default createPrompt(
                     })
                 );
             } else if (key.name === "a") {
-                const selectAll = Boolean(choices.find((choice) => isSelectableChoice(choice) && !choice.checked));
+                const selectAll = Boolean(
+                    choices.find(
+                        (choice) =>
+                            isSelectableChoice(choice) && !choice.checked
+                    )
+                );
                 setChoices(
-                    choices.map((choice) => (isSelectableChoice(choice) ? { ...choice, checked: selectAll } : choice))
+                    choices.map((choice) =>
+                        isSelectableChoice(choice)
+                            ? { ...choice, checked: selectAll }
+                            : choice
+                    )
                 );
             } else if (key.name === "i") {
                 setChoices(
                     choices.map((choice) =>
-                        isSelectableChoice(choice) ? { ...choice, checked: !choice.checked } : choice
+                        isSelectableChoice(choice)
+                            ? { ...choice, checked: !choice.checked }
+                            : choice
                     )
                 );
             } else if (isNumberKey(key)) {
@@ -131,11 +160,16 @@ export default createPrompt(
 
                 const line = choice.name || choice.value;
                 if (choice.disabled) {
-                    const disabledLabel = typeof choice.disabled === "string" ? choice.disabled : "(disabled)";
+                    const disabledLabel =
+                        typeof choice.disabled === "string"
+                            ? choice.disabled
+                            : "(disabled)";
                     return chalk.dim(`- ${line} ${disabledLabel}`);
                 }
 
-                const checkbox = choice.checked ? chalk.green(figures.circleFilled) : figures.circle;
+                const checkbox = choice.checked
+                    ? chalk.green(figures.circleFilled)
+                    : figures.circle;
                 if (index === cursorPosition) {
                     return chalk.cyan(`${figures.pointer}${checkbox} ${line}`);
                 }
@@ -149,7 +183,9 @@ export default createPrompt(
         });
 
         if (status === "done") {
-            const selections = choices.filter((choice) => isSelectableChoice(choice) && choice.checked);
+            const selections = choices.filter(
+                (choice) => isSelectableChoice(choice) && choice.checked
+            );
 
             let result: string = "";
 
@@ -157,7 +193,11 @@ export default createPrompt(
                 result = transformer(selections as Choice<Value>[]);
             } else {
                 result = selections
-                    .map((choice) => (choice as Choice<Value>).name || (choice as Choice<Value>).value)
+                    .map(
+                        (choice) =>
+                            (choice as Choice<Value>).name ||
+                            (choice as Choice<Value>).value
+                    )
                     .join(", ");
             }
 

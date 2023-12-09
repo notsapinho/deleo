@@ -1,19 +1,23 @@
 import chalk from "chalk";
-import { version, author } from "../../package.json";
 import figlet from "figlet";
 
+import { author, version } from "../../package.json";
 import { removeColors } from "./utils";
 
 export class Logger {
     public static tag = chalk`{rgb(237,112,20).bold [Deleo]}`;
 
-    public static log = (text: string): void => console.log(chalk`${Logger.tag} ${text}`);
+    public static log = (text: string): void =>
+        console.log(chalk`${Logger.tag} ${text}`);
 
-    public static error = (text: string): void => console.log(chalk`${Logger.tag} {red ${text}}`);
+    public static error = (text: string): void =>
+        console.log(chalk`${Logger.tag} {red ${text}}`);
 
-    public static success = (text: string): void => console.log(chalk`${Logger.tag} {green ${text}}`);
+    public static success = (text: string): void =>
+        console.log(chalk`${Logger.tag} {green ${text}}`);
 
-    public static warn = (text: string): void => console.log(chalk`${Logger.tag} {yellow ${text}}`);
+    public static warn = (text: string): void =>
+        console.log(chalk`${Logger.tag} {yellow ${text}}`);
 
     public static banner = (): void => {
         console.clear();
@@ -54,7 +58,12 @@ export class Logger {
             .map(
                 (line, _, lines) =>
                     " ".repeat(
-                        space ?? (process.stdout.columns - removeColors(lines[Math.floor(lines.length / 2)]).length) / 2
+                        space ??
+                            (process.stdout.columns -
+                                removeColors(
+                                    lines[Math.floor(lines.length / 2)]
+                                ).length) /
+                                2
                     ) + line
             )
             .join("\n");
@@ -68,10 +77,16 @@ export class Logger {
             .split(/\r?\n/)
             .map(
                 (line, i) =>
-                    `\x1b[38;2;${Math.min(startColor.r + increment * i, 255)};${Math.min(
+                    `\x1b[38;2;${Math.min(
+                        startColor.r + increment * i,
+                        255
+                    )};${Math.min(
                         startColor.g + increment * i,
                         255
-                    )};${Math.min(startColor.b + increment * i, 255)}m${line}\x1b[0m`
+                    )};${Math.min(
+                        startColor.b + increment * i,
+                        255
+                    )}m${line}\x1b[0m`
             )
             .join("\n");
 }

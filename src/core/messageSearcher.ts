@@ -35,7 +35,9 @@ export class MessageSearcher {
         }
     }
 
-    public async getAproximateMessageCount(channel: TextBasedChannel): Promise<Result<number, any>> {
+    public async getAproximateMessageCount(
+        channel: TextBasedChannel
+    ): Promise<Result<number, any>> {
         return Result.fromAsync(async () => {
             //@ts-ignore
             const search = await channel.messages.search({
@@ -64,7 +66,9 @@ export class MessageSearcher {
 
             if (messages.length === 0) return Result.err("No messages found");
 
-            const filtered = messages.filter((message) => message.author.id === user_id);
+            const filtered = messages.filter(
+                (message) => message.author.id === user_id
+            );
 
             if (filtered.length > 0) return Result.ok(filtered);
 
@@ -72,10 +76,16 @@ export class MessageSearcher {
         });
     }
 
-    public async fetch(channel: TextBasedChannel, limit: number = 100): Promise<Result<Message[], any>> {
+    public async fetch(
+        channel: TextBasedChannel,
+        limit: number = 100
+    ): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
             if (["DM", "GROUP_DM"].includes(channel.type)) {
-                const messages = await channel.messages.fetch({ limit, before: this.offsetID });
+                const messages = await channel.messages.fetch({
+                    limit,
+                    before: this.offsetID
+                });
 
                 if (messages.size === 0) return Result.ok([]);
 

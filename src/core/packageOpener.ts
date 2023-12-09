@@ -1,9 +1,8 @@
-import { readFile, readdir } from "fs/promises";
-import { join } from "path";
 import EventEmitter from "events";
-
-import { BaseFetchOptions, DMChannel, Snowflake } from "discord.js-selfbot-v13";
+import { readdir, readFile } from "fs/promises";
+import { join } from "path";
 import { Result } from "@sapphire/result";
+import { BaseFetchOptions, DMChannel, Snowflake } from "discord.js-selfbot-v13";
 import TypedEmitter from "typed-emitter";
 
 import { sleep } from "@/shared/utils";
@@ -40,22 +39,32 @@ export interface PackageChannel {
 export class PackageOpener extends (EventEmitter as new () => TypedEmitter<PackageOpenerEventMappings>) {
     public loaded_channels: PackageChannel[] = [];
 
-    public constructor(private readonly client: DeleoClient, public options: PackageOpenerOptions) {
+    public constructor(
+        private readonly client: DeleoClient,
+        public options: PackageOpenerOptions
+    ) {
         super();
     }
 
-    public async readPackage(base_dir: string): Promise<Result<PackageChannel[], any>> {
+    public async readPackage(
+        base_dir: string
+    ): Promise<Result<PackageChannel[], any>> {
         return Result.fromAsync(async () => {
             const channel_folders = await readdir(base_dir);
 
             for (const folder of channel_folders) {
                 if (folder === "index.json") continue;
 
-                const parsedResult = await Result.fromAsync<PackageChannel>(async () => {
-                    const channel = await readFile(join(base_dir, folder, "channel.json"), "utf-8");
+                const parsedResult = await Result.fromAsync<PackageChannel>(
+                    async () => {
+                        const channel = await readFile(
+                            join(base_dir, folder, "channel.json"),
+                            "utf-8"
+                        );
 
-                    return Result.ok(JSON.parse(channel));
-                });
+                        return Result.ok(JSON.parse(channel));
+                    }
+                );
 
                 if (parsedResult.isErr()) {
                     this.emit(PackageOpenerEvents.FailedToLoad, folder);
@@ -65,7 +74,10 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
 
                 const parsed = parsedResult.unwrap();
 
-                parsed.recipients = parsed.recipients?.filter((r) => r !== this.client.user.id) || [];
+                parsed.recipients =
+                    parsed.recipients?.filter(
+                        (r) => r !== this.client.user.id
+                    ) || [];
 
                 if (!parsed.recipients.length) continue;
 
@@ -80,7 +92,9 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
         });
     }
 
-    public async openChannels(channels: PackageChannel[]): Promise<Result<DMChannel[], any>> {
+    public async openChannels(
+        channels: PackageChannel[]
+    ): Promise<Result<DMChannel[], any>> {
         return Result.fromAsync(async () => {
             const opened_channels: DMChannel[] = [];
 
@@ -88,7 +102,9 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
                 const opened = await Result.fromAsync(async () => {
                     if (!channel.recipients) return Result.err();
 
-                    const opened_channel = await this.openRecipient(channel.recipients);
+                    const opened_channel = await this.openRecipient(
+                        channel.recipients
+                    );
 
                     return Result.ok(opened_channel as DMChannel);
                 });
@@ -111,7 +127,10 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
         });
     }
 
-    private async openRecipient(recipients: Snowflake[], { cache = true }: BaseFetchOptions = {}) {
+    private async openRecipient(
+        recipients: Snowflake[],
+        { cache = true }: BaseFetchOptions = {}
+    ) {
         // @ts-ignore
         const data = await this.client.api.users("@me").channels.post({
             data: {
