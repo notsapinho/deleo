@@ -99,8 +99,6 @@ program
                                 ["DM", "GROUP_DM"].includes(channel.type)
                         ) as Collection<string, DMChannel | TextBasedChannel>;
 
-                        console.log(channels);
-
                         const channelsToDelete = await checkbox({
                             message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
                             prefix: Logger.tag,
