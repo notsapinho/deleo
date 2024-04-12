@@ -1,5 +1,6 @@
+import type { Message, TextBasedChannel } from "discord.js-selfbot-v13";
+
 import { Result } from "@sapphire/result";
-import { Message, TextBasedChannel } from "discord.js-selfbot-v13";
 
 export class MessageSearcher {
     private offsetID: string;
@@ -9,7 +10,7 @@ export class MessageSearcher {
 
     public async *search(
         channel: TextBasedChannel,
-        user_id: string,
+        userId: string,
         limit: number = 100
     ): AsyncGenerator<Message, void, void> {
         const fetch = await this.fetch(channel, limit);
@@ -23,10 +24,10 @@ export class MessageSearcher {
         while (messages.length > 0) {
             const message = messages.shift()!;
 
-            if (message.author.id === user_id) yield message;
+            if (message.author.id === userId) yield message;
 
             if (messages.length === 0) {
-                const fetch = await this.fetchTillUser(channel, user_id, limit);
+                const fetch = await this.fetchTillUser(channel, userId, limit);
 
                 if (fetch.isErr()) break;
 
@@ -54,7 +55,7 @@ export class MessageSearcher {
 
     public async fetchTillUser(
         channel: TextBasedChannel,
-        user_id: string,
+        userId: string,
         limit: number = 100
     ): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
@@ -67,12 +68,12 @@ export class MessageSearcher {
             if (messages.length === 0) return Result.err("No messages found");
 
             const filtered = messages.filter(
-                (message) => message.author.id === user_id
+                (message) => message.author.id === userId
             );
 
             if (filtered.length > 0) return Result.ok(filtered);
 
-            return this.fetchTillUser(channel, user_id, limit);
+            return this.fetchTillUser(channel, userId, limit);
         });
     }
 

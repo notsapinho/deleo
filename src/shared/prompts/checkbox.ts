@@ -11,9 +11,6 @@ import {
     usePrefix,
     useState
 } from "@inquirer/core";
-
-import type {} from "@inquirer/type";
-
 import ansiEscapes from "ansi-escapes";
 import chalk from "chalk";
 import figures from "figures";

@@ -1,6 +1,7 @@
 import EventEmitter from "events";
+import type { Message, TextBasedChannel } from "discord.js-selfbot-v13";
+
 import { Result } from "@sapphire/result";
-import { Message, TextBasedChannel } from "discord.js-selfbot-v13";
 import TypedEmitter from "typed-emitter";
 
 import { DEFAULT_SEARCH_LIMIT } from "@/shared";
@@ -14,7 +15,7 @@ export interface MessageDeleterOptions {
 export enum MessageDeleterEvents {
     Ready = "ready",
     Delete = "delete",
-    FailedDelete = "failed_delete",
+    FailedDelete = "failedDelete",
     Done = "done"
 }
 
@@ -24,13 +25,13 @@ export type MessageDeleterEventMappings = {
     [MessageDeleterEvents.FailedDelete]: (message: Message, error: any) => void;
     [MessageDeleterEvents.Done]: (
         channel: TextBasedChannel,
-        deleted_messages: Message[]
+        deletedMessages: Message[]
     ) => void;
 };
 
 export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<MessageDeleterEventMappings>) {
-    public deleted_messages: Message[] = [];
-    public approximate_total: number = 0;
+    public deletedMessages: Message[] = [];
+    public approximateTotal: number = 0;
 
     public constructor(public readonly options: MessageDeleterOptions) {
         super();
@@ -62,15 +63,15 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
                 DEFAULT_SEARCH_LIMIT
             );
 
-            const approximate_total =
+            const approximateTotal =
                 await searcher.getAproximateMessageCount(channel);
 
-            if (approximate_total.isOk()) {
-                this.approximate_total = approximate_total.unwrap();
+            if (approximateTotal.isOk()) {
+                this.approximateTotal = approximateTotal.unwrap();
             }
 
-            this.deleted_messages = [];
-            const current_deleted_mesasges: Message[] = [];
+            this.deletedMessages = [];
+            const currentDeletedMessages: Message[] = [];
 
             this.emit(MessageDeleterEvents.Ready, channel);
 
@@ -97,8 +98,8 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
 
                 const deleted = await this.deleteMessage(message);
 
-                current_deleted_mesasges.push(message);
-                this.deleted_messages.push(message);
+                currentDeletedMessages.push(message);
+                this.deletedMessages.push(message);
 
                 if (deleted.isErr()) {
                     this.emit(
@@ -116,10 +117,10 @@ export class MessageDeleter extends (EventEmitter as new () => TypedEmitter<Mess
             this.emit(
                 MessageDeleterEvents.Done,
                 channel,
-                current_deleted_mesasges
+                currentDeletedMessages
             );
 
-            return Result.ok(current_deleted_mesasges);
+            return Result.ok(currentDeletedMessages);
         });
     }
 }

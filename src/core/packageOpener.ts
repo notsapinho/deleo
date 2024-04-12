@@ -1,8 +1,15 @@
 import EventEmitter from "events";
 import { readdir, readFile } from "fs/promises";
 import { join } from "path";
+import type {
+    BaseFetchOptions,
+    Collection,
+    DMChannel,
+    Snowflake,
+    TextBasedChannel
+} from "discord.js-selfbot-v13";
+
 import { Result } from "@sapphire/result";
-import { BaseFetchOptions, DMChannel, Snowflake } from "discord.js-selfbot-v13";
 import TypedEmitter from "typed-emitter";
 
 import { sleep } from "@/shared/utils";
@@ -15,19 +22,19 @@ export interface PackageOpenerOptions {
 export enum PackageOpenerEvents {
     Ready = "ready",
     Load = "load",
-    FailedToLoad = "failed_to_load",
+    FailedToLoad = "failedToLoad",
     Open = "open",
-    FailedToOpen = "failed_to_open",
+    FailedToOpen = "failedToOpen",
     Done = "done"
 }
 
 export type PackageOpenerEventMappings = {
-    [PackageOpenerEvents.Ready]: (loaded_channels: PackageChannel[]) => void;
-    [PackageOpenerEvents.Load]: (package_channel: PackageChannel) => void;
+    [PackageOpenerEvents.Ready]: (loadedChannels: PackageChannel[]) => void;
+    [PackageOpenerEvents.Load]: (packageChannel: PackageChannel) => void;
     [PackageOpenerEvents.FailedToLoad]: (folder: string) => void;
     [PackageOpenerEvents.Open]: (channel: DMChannel) => void;
     [PackageOpenerEvents.FailedToOpen]: (channel: PackageChannel) => void;
-    [PackageOpenerEvents.Done]: (opened_channels: DMChannel[]) => void;
+    [PackageOpenerEvents.Done]: (openedChannels: DMChannel[]) => void;
 };
 
 export interface PackageChannel {
@@ -37,7 +44,7 @@ export interface PackageChannel {
 }
 
 export class PackageOpener extends (EventEmitter as new () => TypedEmitter<PackageOpenerEventMappings>) {
-    public loaded_channels: PackageChannel[] = [];
+    public loadedChannels: PackageChannel[] = [];
 
     public constructor(
         private readonly client: DeleoClient,
@@ -47,18 +54,18 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
     }
 
     public async readPackage(
-        base_dir: string
+        baseDir: string
     ): Promise<Result<PackageChannel[], any>> {
         return Result.fromAsync(async () => {
-            const channel_folders = await readdir(base_dir);
+            const channelFolders = await readdir(baseDir);
 
-            for (const folder of channel_folders) {
+            for (const folder of channelFolders) {
                 if (folder === "index.json") continue;
 
                 const parsedResult = await Result.fromAsync<PackageChannel>(
                     async () => {
                         const channel = await readFile(
-                            join(base_dir, folder, "channel.json"),
+                            join(baseDir, folder, "channel.json"),
                             "utf-8"
                         );
 
@@ -81,14 +88,14 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
 
                 if (!parsed.recipients.length) continue;
 
-                this.loaded_channels.push(parsed);
+                this.loadedChannels.push(parsed);
 
                 this.emit(PackageOpenerEvents.Load, parsed);
             }
 
-            this.emit(PackageOpenerEvents.Ready, this.loaded_channels);
+            this.emit(PackageOpenerEvents.Ready, this.loadedChannels);
 
-            return Result.ok(this.loaded_channels);
+            return Result.ok(this.loadedChannels);
         });
     }
 
@@ -96,17 +103,25 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
         channels: PackageChannel[]
     ): Promise<Result<DMChannel[], any>> {
         return Result.fromAsync(async () => {
-            const opened_channels: DMChannel[] = [];
+            const openedChannels: DMChannel[] = [];
 
-            for (const channel of channels) {
+            const currentChannels = this.client.channels.cache.filter(
+                (channel) => ["DM", "GROUP_DM"].includes(channel.type)
+            ) as Collection<string, DMChannel | TextBasedChannel>;
+
+            const channelsToOpen = channels.filter(
+                (channel) => !currentChannels.some((c) => c.id === channel.id)
+            );
+
+            for (const channel of channelsToOpen) {
                 const opened = await Result.fromAsync(async () => {
                     if (!channel.recipients) return Result.err();
 
-                    const opened_channel = await this.openRecipient(
+                    const openedChannel = await this.openRecipient(
                         channel.recipients
                     );
 
-                    return Result.ok(opened_channel as DMChannel);
+                    return Result.ok(openedChannel as DMChannel);
                 });
 
                 if (opened.isErr()) {
@@ -114,16 +129,16 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
                     continue;
                 }
 
-                opened_channels.push(opened.unwrap());
+                openedChannels.push(opened.unwrap());
 
                 this.emit(PackageOpenerEvents.Open, opened.unwrap());
 
                 await sleep(this.options.openDelay);
             }
 
-            this.emit(PackageOpenerEvents.Done, opened_channels);
+            this.emit(PackageOpenerEvents.Done, openedChannels);
 
-            return Result.ok(opened_channels);
+            return Result.ok(openedChannels);
         });
     }
 
@@ -134,17 +149,15 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
         // @ts-ignore
         const data = await this.client.api.users("@me").channels.post({
             data: {
-                recipients
+                recipients,
             },
-            headers: {
-                "X-Context-Properties": "e30=" // {}
-            }
+            DiscordContext: {}
         });
 
         // @ts-ignore
-        const dm_channel = this.client.channels._add(data, null, { cache });
+        const dmChannel = this.client.channels._add(data, null, { cache });
         // @ts-ignore
-        await dm_channel.sync();
-        return dm_channel;
+        await dmChannel.sync();
+        return dmChannel;
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "deleo",
-    "version": "1.1.9",
+    "version": "1.2.0",
     "description": "Deleo, a TypeScript-based CLI tool, simplifies Discord content management by enabling efficient deletion of messages in open DMs or specific channels.",
     "author": "notsapinho",
     "main": "dist/index.js",
@@ -31,28 +31,29 @@
     "repository": "https://github.com/notsapinho/deleo",
     "homepage": "https://github.com/notsapinho/deleo#readme",
     "devDependencies": {
-        "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
-        "@swc/cli": "^0.1.63",
-        "@swc/core": "^1.3.100",
+        "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
+        "@swc/cli": "^0.1.65",
+        "@swc/core": "^1.4.13",
         "@types/cli-progress": "^3.11.5",
-        "@types/eslint": "^8.44.8",
+        "@types/eslint": "^8.56.8",
         "@types/figlet": "^1.5.8",
         "@types/inquirer": "^9.0.7",
-        "@types/node": "^18.19.3",
-        "prettier": "^3.1.0",
+        "@types/node": "^18.19.31",
+        "prettier": "^3.2.5",
         "typed-emitter": "^2.1.0",
-        "typescript": "^5.3.3"
+        "typescript": "^5.4.5"
     },
     "dependencies": {
         "@inquirer/core": "^3.1.2",
-        "@inquirer/type": "^1.1.5",
-        "@sapphire/result": "^2.6.5",
-        "axios": "^1.6.2",
+        "@inquirer/type": "^1.2.1",
+        "@sapphire/result": "^2.6.6",
+        "axios": "^1.6.8",
         "chalk": "^4.1.2",
         "cli-progress": "^3.12.0",
-        "commander": "^11.1.0",
-        "discord.js-selfbot-v13": "^2.15.0",
+        "commander": "^12.0.0",
+        "discord.js-selfbot-v13": "^3.1.4",
         "figlet": "^1.7.0",
         "inquirer": "^7.3.3"
-    }
+    },
+    "packageManager": "yarn@4.1.1"
 }

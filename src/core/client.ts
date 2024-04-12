@@ -1,12 +1,14 @@
+import type { Message, TextBasedChannel } from "discord.js-selfbot-v13";
+import type { ProgramOptions } from "../";
+
 import { Result } from "@sapphire/result";
 import chalk from "chalk";
 import { Presets, SingleBar } from "cli-progress";
-import { Client, Message, TextBasedChannel } from "discord.js-selfbot-v13";
+import { Client } from "discord.js-selfbot-v13";
 import inquirer from "inquirer";
 
 import { Logger, PROGRESS_BAR_FORMAT } from "@/shared";
 import { truncate } from "@/shared/utils";
-import { ProgramOptions } from "../";
 import { AuthManager, MessageDeleter, PackageOpener } from "./";
 
 export class DeleoClient extends Client {
@@ -24,9 +26,7 @@ export class DeleoClient extends Client {
     public readonly packageOpener: PackageOpener;
 
     public constructor(public readonly opts: ProgramOptions) {
-        super({
-            checkUpdate: false
-        });
+        super();
 
         this.deleter = new MessageDeleter({
             deleteDelay: Number(opts.deleteDelay)
@@ -61,11 +61,11 @@ export class DeleoClient extends Client {
     }
 
     public async deleteMessagesFromChannels(
-        channels_to_delete: string[]
+        channelsToDelete: string[]
     ): Promise<Result<any, any>> {
         return Result.fromAsync(async () => {
-            for (const channel_id of channels_to_delete) {
-                const result = await this.deleteMessagesFromChannel(channel_id);
+            for (const channelId of channelsToDelete) {
+                const result = await this.deleteMessagesFromChannel(channelId);
 
                 if (result.isErr()) continue;
             }
@@ -73,11 +73,11 @@ export class DeleoClient extends Client {
     }
 
     public async deleteMessagesFromChannel(
-        channel_id: string
+        channelId: string
     ): Promise<Result<Message[], any>> {
         return Result.fromAsync(async () => {
             const channelResult = await Result.fromAsync(
-                async () => await this.channels.fetch(channel_id)
+                async () => await this.channels.fetch(channelId)
             );
 
             if (channelResult.isErr())

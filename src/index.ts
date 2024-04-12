@@ -1,13 +1,14 @@
 #! /usr/bin/env node
-import { Result } from "@sapphire/result";
-import chalk from "chalk";
-import { Command } from "commander";
-import {
+import type {
     Collection,
     DMChannel,
     NonThreadGuildBasedChannel,
     TextBasedChannel
 } from "discord.js-selfbot-v13";
+
+import { Result } from "@sapphire/result";
+import chalk from "chalk";
+import { Command } from "commander";
 import inquirer from "inquirer";
 
 import {
@@ -39,7 +40,7 @@ program
     .option("-t, --token <token>", "Your discord token")
     .option("--verbose", "Enable verbose logging (disables progress bar)")
     .option("--check-updates", "Check for updates", true)
-    .addHelpCommand("help [command]", "Display help for command")
+    .helpCommand("help [command]", "Display help for command")
     .helpOption("-h, --help", "Display help for command");
 
 program
@@ -98,7 +99,9 @@ program
                                 ["DM", "GROUP_DM"].includes(channel.type)
                         ) as Collection<string, DMChannel | TextBasedChannel>;
 
-                        const channels_to_delete = await checkbox({
+                        console.log(channels);
+
+                        const channelsToDelete = await checkbox({
                             message: chalk`{white Select the channels you want to delete messages from {rgb(237,112,20).bold >>}}`,
                             prefix: Logger.tag,
                             default: channels.map((channel) => channel.id),
@@ -112,7 +115,7 @@ program
                                 }} ${pluralize("channel", choices.length)}}`
                         });
 
-                        if (channels_to_delete.length === 0) {
+                        if (channelsToDelete.length === 0) {
                             Logger.error(
                                 "You must select at least one channel."
                             );
@@ -123,7 +126,7 @@ program
 
                         const deleteMessagesFromChannelsResult =
                             await client.deleteMessagesFromChannels(
-                                channels_to_delete
+                                channelsToDelete
                             );
 
                         if (deleteMessagesFromChannelsResult.isErr()) {
@@ -252,15 +255,15 @@ program
         client.deleter.on(MessageDeleterEvents.Ready, (channel) => {
             Logger.log(
                 chalk`{white Deleting an approximate total of {yellow.bold ${
-                    client.deleter.approximate_total
+                    client.deleter.approximateTotal
                 }} ${pluralize(
                     "message",
-                    client.deleter.approximate_total
+                    client.deleter.approximateTotal
                 )} from {yellow.bold ${getChannelName(channel)}}}`
             );
 
             if (!opts.verbose)
-                client.progress.start(client.deleter.approximate_total, 0);
+                client.progress.start(client.deleter.approximateTotal, 0);
         });
 
         client.deleter.on(MessageDeleterEvents.Delete, (message) => {
@@ -283,7 +286,7 @@ program
             MessageDeleterEvents.Done,
             async (channel: TextBasedChannel) => {
                 if (!opts.verbose) {
-                    client.progress.update(client.deleter.approximate_total);
+                    client.progress.update(client.deleter.approximateTotal);
                     client.progress.stop();
                 }
 
@@ -335,8 +338,8 @@ program
         client.on("ready", async () => {
             Logger.success(`Logged in as ${client.user?.tag}!`);
 
-            const { package_data_folder } = await inquirer.prompt({
-                name: "package_data_folder",
+            const { packageDataFolder } = await inquirer.prompt({
+                name: "packageDataFolder",
                 type: "input",
                 message: chalk`{white Enter the path to the Discord Data Package {rgb(237,112,20).bold messages} folder {rgb(237,112,20).bold >>}}`,
                 prefix: Logger.tag,
@@ -346,7 +349,7 @@ program
             console.log();
 
             const readResult =
-                await client.packageOpener.readPackage(package_data_folder);
+                await client.packageOpener.readPackage(packageDataFolder);
 
             if (readResult.isErr()) {
                 Logger.error("Failed to read the Discord Data Package.");
@@ -411,9 +414,9 @@ program
             else client.progress.increment();
         });
 
-        client.packageOpener.on(PackageOpenerEvents.Done, (opened_channels) => {
+        client.packageOpener.on(PackageOpenerEvents.Done, (openedChannels) => {
             if (!opts.verbose) {
-                client.progress.update(opened_channels.length);
+                client.progress.update(openedChannels.length);
                 client.progress.stop();
             }
 

@@ -1,6 +1,7 @@
 import { readFile, rm, writeFile } from "fs/promises";
 import os from "os";
 import path from "path";
+
 import { Result } from "@sapphire/result";
 
 export class AuthManager {
