@@ -149,7 +149,7 @@ export class PackageOpener extends (EventEmitter as new () => TypedEmitter<Packa
         // @ts-ignore
         const data = await this.client.api.users("@me").channels.post({
             data: {
-                recipients,
+                recipients
             },
             DiscordContext: {}
         });
