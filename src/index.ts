@@ -294,10 +294,9 @@ program
                             chalk`{white Closing DM with {yellow.bold ${channel.recipient.tag}}}`
                         );
 
-                    if (opts.closeDms)
-                        await client.users
-                            .deleteDM(channel.recipient.id)
-                            .catch(() => null);
+                    await client.users
+                        .deleteDM(channel.recipient.id)
+                        .catch(() => null);
                 }
 
                 console.log();
